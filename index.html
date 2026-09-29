@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>규칙 하나로 부품 만들기</title>
+<style>
+  :root{--bg:#fff;--ink:#1a1a1a;--sub:#6b6b6b;--line:#dcdcdc;
+        --accent:#2f6b3f;--warn:#b3261e;--panel:#f6f6f4;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.6 -apple-system,BlinkMacSystemFont,"Pretendard","맑은 고딕",sans-serif}
+  header{padding:26px 24px 14px;border-bottom:1px solid var(--line)}
+  h1{margin:0;font-size:21px;font-weight:600;letter-spacing:-0.01em}
+  header p{margin:6px 0 0;color:var(--sub);font-size:14px}
+  .wrap{display:grid;grid-template-columns:290px 1fr}
+  @media(max-width:880px){.wrap{grid-template-columns:1fr}}
+  .controls{padding:20px 22px;border-right:1px solid var(--line);background:var(--panel)}
+  .controls h2{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+               color:var(--sub);margin:0 0 13px;font-weight:600}
+  .ctl{margin-bottom:14px}
+  .ctl label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .ctl label b{font-weight:600;font-variant-numeric:tabular-nums}
+  .ctl input[type=range]{width:100%;accent-color:var(--accent)}
+  .ctl select{width:100%;padding:6px;font:inherit;font-size:13px;
+              border:1px solid var(--line);border-radius:4px;background:#fff}
+  .out{padding:20px 24px}
+  .stats{display:flex;flex-wrap:wrap;gap:20px;margin-bottom:16px;
+         padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .stat .n{font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat .n.bad{color:var(--warn)}
+  .stat .k{font-size:12px;color:var(--sub)}
+  .views{display:grid;grid-template-columns:1fr 1.4fr;gap:20px}
+  @media(max-width:1100px){.views{grid-template-columns:1fr}}
+  .view h3{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+           color:var(--sub);margin:0 0 7px;font-weight:600}
+  svg{width:100%;height:auto;background:#fff;border:1px solid var(--line);display:block}
+  footer{padding:15px 24px 40px;color:var(--sub);font-size:13px;border-top:1px solid var(--line)}
+  code{background:var(--panel);padding:1px 5px;border-radius:3px;font-size:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>규칙 하나로 부품 만들기</h1>
+  <p>기초스튜디오 4 · Project 02 · 판재를 쌓아 입체를 만든다. 값을 바꾸면 부품이 바뀐다.</p>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <h2>바꿀 수 있는 값</h2>
+
+    <div class="ctl">
+      <label>규칙 <b id="v_mode"></b></label>
+      <select id="mode">
+        <option value="hour" selected>모래시계 — 가운데가 잘록</option>
+        <option value="cone">원뿔대 — 위로 갈수록 좁게</option>
+        <option value="barrel">배흘림 — 가운데가 부름</option>
+        <option value="petal">꽃잎 — 둘레가 물결</option>
+      </select>
+    </div>
+
+    <div class="ctl"><label>층 수 <b id="v_n"></b></label>
+      <input type="range" id="n" min="4" max="40" value="16"></div>
+    <div class="ctl"><label>전체 높이 (mm) <b id="v_H"></b></label>
+      <input type="range" id="H" min="150" max="750" step="10" value="440"></div>
+    <div class="ctl"><label>기준 반지름 (mm) <b id="v_R"></b></label>
+      <input type="range" id="R" min="60" max="320" step="5" value="160"></div>
+    <div class="ctl"><label>굴곡 정도 <b id="v_amp"></b></label>
+      <input type="range" id="amp" min="0" max="70" value="40"></div>
+    <div class="ctl"><label>층마다 회전 (도) <b id="v_tw"></b></label>
+      <input type="range" id="tw" min="0" max="30" value="6"></div>
+    <div class="ctl"><label>꽃잎 수 <b id="v_pet"></b></label>
+      <input type="range" id="pet" min="3" max="12" value="6"></div>
+    <div class="ctl"><label>판 두께 (mm) <b id="v_t"></b></label>
+      <input type="range" id="t" min="4" max="18" value="12"></div>
+    <div class="ctl"><label>가운데 구멍 (mm) <b id="v_hole"></b></label>
+      <input type="range" id="hole" min="0" max="120" step="5" value="45"></div>
+  </div>
+
+  <div class="out">
+    <div class="stats">
+      <div class="stat"><div class="n" id="s_parts">–</div><div class="k">부품 수</div></div>
+      <div class="stat"><div class="n" id="s_h">–</div><div class="k">실제 높이 (mm)</div></div>
+      <div class="stat"><div class="n" id="s_cut">–</div><div class="k">총 절단 길이 (m)</div></div>
+      <div class="stat"><div class="n" id="s_area">–</div><div class="k">부품 면적 (㎡)</div></div>
+      <div class="stat"><div class="n" id="s_fit">–</div><div class="k">합판 1장(1220×2440)</div></div>
+    </div>
+
+    <div class="views">
+      <div class="view">
+        <h3>정면 — 쌓았을 때</h3>
+        <svg id="front" viewBox="0 0 320 420"></svg>
+      </div>
+      <div class="view">
+        <h3>전개도 — 잘라야 할 부품 전부</h3>
+        <svg id="nest" viewBox="0 0 400 200"></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  형태를 정하는 것은 아래 <code>radiusAt(u, a, P)</code> 함수 하나입니다.
+  <code>u</code>는 아래에서 위로 0~1, <code>a</code>는 둘레를 도는 각도입니다.
+  자기 팀의 규칙으로 이 함수만 고쳐 쓰세요.
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  1. 규칙 — 이 함수 하나가 형태를 정한다
+//     u : 아래(0) ~ 위(1)      a : 각도(라디안)
+//     돌려주는 값 : 그 자리의 반지름 배율
+// ═══════════════════════════════════════════════════════
+function radiusAt(u, a, P) {
+  const k = P.amp / 100;
+  let r;
+  switch (P.mode) {
+    case 'cone':   r = 1 - k * u;                                break;
+    case 'barrel': r = 1 + k * Math.sin(Math.PI * u);            break;
+    case 'petal':  r = (1 - 0.35 * k * u)
+                       * (1 + 0.25 * k * Math.cos(P.pet * a));   break;
+    default:       r = 1 - k * Math.sin(Math.PI * u);            break; // 모래시계
+  }
+  return Math.max(0.15, r);
+}
+
+// ═══════════════════════════════════════════════════════
+//  2. 규칙에서 층(부품)을 만든다
+// ═══════════════════════════════════════════════════════
+const SEG = 72;
+
+function makeLayer(i, P) {
+  const u = P.n > 1 ? i / (P.n - 1) : 0;
+  const spin = P.tw * Math.PI / 180 * i;          // 층마다 조금씩 돌린다
+  const pts = [];
+  for (let s = 0; s < SEG; s++) {
+    const a = 2 * Math.PI * s / SEG;
+    const r = P.R * radiusAt(u, a + spin, P);
+    pts.push([r * Math.cos(a), r * Math.sin(a)]);
+  }
+  const rmax = Math.max(...pts.map(p => Math.hypot(p[0], p[1])));
+  const rmin = Math.min(...pts.map(p => Math.hypot(p[0], p[1])));
+  return { u, pts, rmax, rmin, z: u * (P.H - P.t) };
+}
+
+function build(P) {
+  const layers = [];
+  for (let i = 0; i < P.n; i++) layers.push(makeLayer(i, P));
+  return layers;
+}
+
+// ═══════════════════════════════════════════════════════
+//  3. 그린다
+// ═══════════════════════════════════════════════════════
+const path = pts => 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L') + ' Z';
+
+function drawFront(L, P) {
+  const pad = 20, W = 320, Hs = 420;
+  const maxR = Math.max(...L.map(l => l.rmax));
+  const sc = Math.min((W - pad * 2) / (maxR * 2), (Hs - pad * 2) / P.H);
+  const cx = W / 2, base = Hs - pad;
+  let s = '';
+  L.forEach((l, i) => {
+    // 각 층을 정면에서 본 폭 = 그 층의 최대 지름
+    const w = l.rmax * 2 * sc, h = Math.max(1.5, P.t * sc);
+    const y = base - (l.z + P.t) * sc;
+    const shade = 0.82 - 0.35 * (i / Math.max(1, L.length - 1));
+    s += `<rect x="${(cx - w / 2).toFixed(1)}" y="${y.toFixed(1)}"
+            width="${w.toFixed(1)}" height="${h.toFixed(1)}"
+            fill="rgba(47,107,63,${shade.toFixed(2)})" stroke="#1f4a2c" stroke-width="0.4"/>`;
+  });
+  if (P.hole > 0) {
+    const hw = P.hole * sc;
+    s += `<rect x="${(cx - hw / 2).toFixed(1)}" y="${(base - P.H * sc).toFixed(1)}"
+            width="${hw.toFixed(1)}" height="${(P.H * sc).toFixed(1)}"
+            fill="none" stroke="#b3261e" stroke-dasharray="3 3" stroke-width="0.8"/>`;
+  }
+  s += `<line x1="${pad}" y1="${base}" x2="${W - pad}" y2="${base}" stroke="#1a1a1a"/>`;
+  return s;
+}
+
+function drawNest(L, P) {
+  const SHEET_W = 2440, SHEET_H = 1220, GAP = 10;
+  let x = GAP, y = GAP, rowH = 0, placed = [], overflow = false;
+  for (const l of L) {
+    const d = l.rmax * 2;
+    if (x + d + GAP > SHEET_W) { x = GAP; y += rowH + GAP; rowH = 0; }
+    if (y + d + GAP > SHEET_H) overflow = true;
+    placed.push({ l, x, y, d });
+    x += d + GAP; rowH = Math.max(rowH, d);
+  }
+  const sc = 400 / SHEET_W, vh = SHEET_H * sc;
+  let s = `<rect x="0" y="0" width="400" height="${vh.toFixed(1)}" fill="none"
+            stroke="${overflow ? '#b3261e' : '#dcdcdc'}" stroke-width="1.5"/>`;
+  placed.forEach(({ l, x, y, d }) => {
+    const cx = (x + d / 2) * sc, cy = (y + d / 2) * sc;
+    const pts = l.pts.map(p => [cx + p[0] * sc, cy + p[1] * sc]);
+    s += `<path d="${path(pts)}" fill="#eef4ef" stroke="#2f6b3f" stroke-width="0.5"/>`;
+    if (P.hole > 0)
+      s += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}"
+              r="${(P.hole / 2 * sc).toFixed(2)}" fill="#fff" stroke="#b3261e" stroke-width="0.4"/>`;
+  });
+  return { svg: s, overflow, vh };
+}
+
+// ═══════════════════════════════════════════════════════
+//  4. 값을 읽어 다시 그린다
+// ═══════════════════════════════════════════════════════
+const ids = ['mode','n','H','R','amp','tw','pet','t','hole'];
+const read = () => Object.fromEntries(ids.map(k => {
+  const el = document.getElementById(k);
+  return [k, k === 'mode' ? el.value : +el.value];
+}));
+
+const len = pts => pts.reduce((a, p, i) => {
+  const q = pts[(i + 1) % pts.length];
+  return a + Math.hypot(q[0] - p[0], q[1] - p[1]);
+}, 0);
+const area = pts => Math.abs(pts.reduce((a, p, i) => {
+  const q = pts[(i + 1) % pts.length];
+  return a + p[0] * q[1] - q[0] * p[1];
+}, 0)) / 2;
+
+function update() {
+  const P = read();
+  const L = build(P);
+
+  document.getElementById('v_mode').textContent =
+    document.getElementById('mode').selectedOptions[0].text.split(' —')[0];
+  [['n',''],['H','mm'],['R','mm'],['tw','°'],['pet','장'],['t','mm'],['hole','mm']]
+    .forEach(([k, u]) => document.getElementById('v_' + k).textContent = P[k] + u);
+  document.getElementById('v_amp').textContent = P.amp + '%';
+
+  const holeA = Math.PI * (P.hole / 2) ** 2;
+  const cut = L.reduce((a, l) => a + len(l.pts) + (P.hole > 0 ? Math.PI * P.hole : 0), 0) / 1000;
+  const ar = L.reduce((a, l) => a + area(l.pts) - holeA, 0) / 1e6;
+
+  document.getElementById('s_parts').textContent = L.length;
+  document.getElementById('s_h').textContent = ((L.length - 1) * 0 + P.H).toFixed(0);
+  document.getElementById('s_cut').textContent = cut.toFixed(1);
+  document.getElementById('s_area').textContent = ar.toFixed(2);
+
+  document.getElementById('front').innerHTML = drawFront(L, P);
+  const n = drawNest(L, P);
+  const nest = document.getElementById('nest');
+  nest.setAttribute('viewBox', `0 0 400 ${n.vh.toFixed(0)}`);
+  nest.innerHTML = n.svg;
+
+  const fit = document.getElementById('s_fit');
+  fit.textContent = n.overflow ? '넘침' : '들어감';
+  fit.className = 'n' + (n.overflow ? ' bad' : '');
+}
+
+ids.forEach(k => document.getElementById(k).addEventListener('input', update));
+update();
+</script>
+</body>
+</html>
