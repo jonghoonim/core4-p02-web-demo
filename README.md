@@ -44,12 +44,9 @@ function radiusAt(u, a, P) {
 
 ## 웹에 올리기
 
-계정 두 개가 필요합니다. **GitHub**(코드를 두는 곳)와 **Vercel**(주소를 만들어 주는 곳).
-Vercel은 GitHub 계정으로 바로 로그인됩니다.
+필요한 계정은 **GitHub 하나**입니다.
 
-### 1. GitHub에 올린다
-
-웹에서 하는 방법이 가장 쉽습니다.
+### 1. 저장소를 만들고 파일을 올린다
 
 1. github.com에서 **New repository** → 이름을 정하고 **Public**으로 만든다
 2. 만들어진 화면에서 **uploading an existing file** 링크를 누른다
@@ -66,17 +63,22 @@ git remote add origin https://github.com/<계정>/<저장소>.git
 git push -u origin main
 ```
 
-### 2. Vercel로 주소를 만든다
+### 2. 주소를 켠다
 
-1. vercel.com → **Continue with GitHub**로 로그인
-2. **Add New… → Project** → 방금 만든 저장소를 **Import**
-3. 설정은 건드리지 않고 **Deploy**
-4. 30초쯤 뒤에 `https://<이름>.vercel.app` 주소가 나온다
+1. 저장소 화면에서 **Settings → Pages**
+2. Source를 **Deploy from a branch**, 브랜치를 **main**, 폴더를 **/ (root)** 로 두고 **Save**
+3. 1분쯤 뒤 `https://<계정>.github.io/<저장소>/` 가 열린다
 
 ### 3. 고칠 때
 
-GitHub에 다시 올리기만 하면 Vercel이 알아서 새로 배포합니다.
-주소는 그대로입니다.
+파일을 다시 올리기만 하면 1분 안에 주소가 갱신됩니다. 주소는 그대로입니다.
+
+### 강사 예제
+
+https://jonghoonim.github.io/core4-p02-web-demo/
+
+저장소: https://github.com/jonghoonim/core4-p02-web-demo
+오른쪽 위 **Fork**를 누르면 자기 계정으로 복제됩니다. 규칙 함수만 고쳐 쓰세요.
 
 ---
 
